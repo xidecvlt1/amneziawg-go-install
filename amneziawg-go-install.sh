@@ -326,8 +326,6 @@ net.ipv4.conf.all.route_localnet=1
 net.ipv4.conf.default.route_localnet=1
 net.ipv4.conf.all.rp_filter=2
 net.ipv4.conf.default.rp_filter=2
-net.core.default_qdisc = cake
-net.ipv4.tcp_congestion_control = bbr
 EOF
 
 	sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1
@@ -335,8 +333,6 @@ EOF
 	sysctl -w net.ipv4.conf.default.route_localnet=1 >/dev/null 2>&1
     sysctl -w net.ipv4.conf.all.rp_filter=2 >/dev/null 2>&1
     sysctl -w net.ipv4.conf.default.rp_filter=2 >/dev/null 2>&1
-	sysctl -w net.core.default_qdisc = cake >/dev/null 2>&1
-	sysctl -w net.ipv4.tcp_congestion_control = bbr >/dev/null 2>&1
 	
 	sysctl -p /etc/sysctl.d/99-amneziawg.conf >/dev/null 2>&1
 	
