@@ -333,8 +333,7 @@ EOF
 	sysctl -w net.ipv4.conf.default.route_localnet=1 >/dev/null 2>&1
     sysctl -w net.ipv4.conf.all.rp_filter=2 >/dev/null 2>&1
     sysctl -w net.ipv4.conf.default.rp_filter=2 >/dev/null 2>&1
-    sysctl -w net.ipv4.conf.awg0.rp_filter=2 >/dev/null 2>&1
-	sysctl -p /etc/sysctl.d/99-amneziawg.conf >/dev/null 2>&1
+    sysctl -p /etc/sysctl.d/99-amneziawg.conf >/dev/null 2>&1
     
 	if command -v netfilter-persistent &>/dev/null; then
 		netfilter-persistent save >/dev/null 2>&1
