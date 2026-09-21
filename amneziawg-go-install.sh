@@ -343,6 +343,34 @@ EOF
 	systemctl enable awg-quick@${SERVER_WG_NIC}
 	systemctl restart awg-quick@${SERVER_WG_NIC}
 
+# Add cronjob to reset disconnected peer
+	cat <<'EOF' > /usr/local/bin/reset-disconnected-peer.sh
+#!/bin/bash
+INTERFACE="awg0"
+CONFIG_FILE="/etc/amnezia/amneziawg/awg0.conf"
+TIMEOUT=180
+NOW=$(date +%s)
+
+awg show $INTERFACE dump | tail -n +2 | while read -r line; do
+    PUBLIC_KEY=$(echo "$line" | awk '{print $1}')
+    LATEST_HANDSHAKE=$(echo "$line" | awk '{print $5}')
+    
+    if [ "$LATEST_HANDSHAKE" -ne 0 ]; then
+        DIFF=$((NOW - LATEST_HANDSHAKE))
+        
+        if [ $DIFF -gt $TIMEOUT ]; then
+            awg set $INTERFACE peer "$PUBLIC_KEY" remove
+            awg syncconf $INTERFACE <(awg-quick strip $INTERFACE)
+        fi
+    fi
+done
+EOF
+	chmod +x /usr/local/bin/reset-disconnected-peer.sh
+	
+	echo "* * * * * root /usr/local/bin/reset-disconnected-peer.sh >/dev/null 2>&1" > /etc/cron.d/awg-peer-reset
+	chmod 644 /etc/cron.d/awg-peer-reset
+	systemctl restart cron 2>/dev/null || systemctl restart crond 2>/dev/null
+	
 	echo -e "\n${GREEN}AmneziaWG (amneziawg-go) installed successfully!${NC}"
 
 	newClient
@@ -554,6 +582,9 @@ function uninstallWireGuard() {
 	echo -e "${GREEN}[4/4] Cleaning configuration files...${NC}"
 	rm -rf /etc/amnezia/amneziawg
 	rm -f /root/${SERVER_WG_NIC}-client-*.conf
+	rm -f /usr/local/bin/reset-disconnected-peer.sh
+	rm -f /etc/cron.d/awg-peer-reset
+	systemctl restart cron 2>/dev/null || systemctl restart crond 2>/dev/null
 
 	echo -e "\n${GREEN}AmneziaWG has been uninstalled!${NC}"
     echo ""
