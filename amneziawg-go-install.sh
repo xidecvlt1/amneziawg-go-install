@@ -255,10 +255,18 @@ function installWireGuard() {
 
 	echo -e "\n${GREEN}[2/5] Installing Go official release & building AmneziaWG...${NC}"
 	apt-get remove -y golang-go 2>/dev/null || true
-	curl -LO https://go.dev/dl/go1.23.2.linux-amd64.tar.gz
+
+	LATEST_GO=$(curl -s "https://go.dev/dl/?mode=json" | grep -o 'go[0-9]\+\.[0-9]\+\.[0-9]\+' | head -n 1)
+
+	if [ -z "$LATEST_GO" ]; then
+		LATEST_GO="go1.23.2"
+	fi
+
+	curl -LO "https://go.dev/dl/${LATEST_GO}.linux-amd64.tar.gz"
 	rm -rf /usr/local/go
-	tar -C /usr/local -xzf go1.23.2.linux-amd64.tar.gz
-	rm go1.23.2.linux-amd64.tar.gz
+	tar -C /usr/local -xzf "${LATEST_GO}.linux-amd64.tar.gz"
+	rm "${LATEST_GO}.linux-amd64.tar.gz"
+
 	export PATH=$PATH:/usr/local/go/bin
 
 	WORKDIR=$(mktemp -d)
